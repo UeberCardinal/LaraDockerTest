@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{asset('css/app.css')}}">
    <link rel="stylesheet" href="{{asset('css/popup.css')}}">
     <title>Document</title>
+
 </head>
 <body>
 <div class="wrapper d-flex">
@@ -25,6 +26,7 @@
                     @yield('content')
                     @include('content.popup.popup')
                     @include('content.popup.show')
+                    @include('content.popup.edit')
                 </div>
                 <div class="col-sm-5 col-md-5 col-lg-5 justify-content-end d-flex">
                     <div class="m-4">
@@ -32,15 +34,9 @@
                             Добавить
                         </button>
                     </div>
-
                 </div>
-
-
             </div>
-
         </div>
-
-
     </main>
 </div>
 

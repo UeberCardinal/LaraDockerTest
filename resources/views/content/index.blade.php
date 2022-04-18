@@ -11,22 +11,23 @@
                 <td class="p-3">Атрибуты</td>
             </tr>
             </thead>
-            <tbody>
-            @foreach($products as $product)
+            <tbody id="tbody_products_table">
 
-                <tr onclick="showProductForm({{$product->id, $product->getActionUrl()}})" class="table_product" id="table_product">
+        {{--    @foreach($products as $product)
+
+                <tr onclick="showProductForm({{$product->id, $product->getActionUrl()}})" class="table_product" id="{{$product->id}}">
                     <td class="p-3 bg-white">{{$product->article}}</td>
                     <td class="p-3 bg-white">{{$product->name}}</td>
                     <td class="p-3 bg-white">{{$product->status}}</td>
                     <td class="p-3 bg-white">
                         @if(!is_null($product->data))
                             @foreach($product->data as $key => $value)
-                                {{$key.':'.$value}}<br>
+                               {{$key.': '.$value}}<br>
                             @endforeach
                         @endif
                     </td>
                 </tr>
-            @endforeach
+            @endforeach--}}
             </tbody>
         </table>
     </div>

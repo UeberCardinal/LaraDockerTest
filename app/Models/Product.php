@@ -18,10 +18,4 @@ class Product extends Model
         return $query->where('status', 'available');
     }
 
-    public function getActionUrl()
-    {
-
-        $actionUrl = Request::url() . '/product/' . $this->id;
-        return $actionUrl ;
-    }
 }

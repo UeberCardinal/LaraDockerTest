@@ -11,6 +11,33 @@ closePopup.addEventListener('click', () => {
 })
 
 
+//index products table
+$(document).ready(function () {
+    fetchProducts();
+    function fetchProducts() {
+        $.ajax({
+            type: "GET",
+            url:"api/fetch/products",
+            datatype:"json",
+            success: function (response) {
+                $('tbody').html()
+                for (let keyObj = 0; response.length > keyObj; keyObj++) {
+                    let attr = ''
+                    for (let key in response[keyObj].data) {
+                        attr += key+': '+ response[keyObj].data[key]+'<br>'
+                    }
+                    $("tbody").append('<tr  class="tableproduct" id="' + response[keyObj].id + '">' +
+                        '<td class="p-3">' + response[keyObj].article + '</td>' +
+                        '<td class="p-3">' + response[keyObj].name + '</td>' +
+                        '<td class="p-3">' + response[keyObj].status + '</td>' +
+                        '<td class="p-3">' + attr + '</td><br>' +
+                        '</tr>')
+
+                   }
+            }
+        })
+    }
+})
 
 jQuery.ajaxSetup({
     headers: {'X-XSRF-TOKEN': jQuery('meta[name="csrf-token"]').attr('content'),
@@ -18,7 +45,7 @@ jQuery.ajaxSetup({
 });
 
 
-                //create product ajax function
+                //store product ajax function
 
 const form = document.forms.productForm
 $(document).ready(function () {
@@ -31,8 +58,6 @@ $(document).ready(function () {
         for (let [key, prop] of formData) {
             obj[key] = prop;
         }
-
-
         let  data = {'data': {}}
         if (formData.has('data')){
 
@@ -43,7 +68,10 @@ $(document).ready(function () {
                 i = i + 2
             }
              data = Object.assign(obj, data)
-        } else {data = Object.assign(data,obj)}
+        } else {
+            data = Object.assign(data,obj)
+            data['data'] = null
+        }
 
 
         data = JSON.stringify(data)
@@ -61,31 +89,35 @@ $(document).ready(function () {
             data:  data,
 
             success: function (response) { //Данные отправлены успешно
-                console.log(response.name, this.data)
-                $(document).ready(function () {
-                    console.log(response)
                     let string1 = JSON.stringify(response);
                     let resp = JSON.parse(string1);
-                    const content = $('<tr>' +
-                        '<td class="p-3 bg-white">' + resp['article'] + '</td>' +
-                        '<td class="p-3 bg-white">' + resp['name'] + '</td>' +
-                        '<td class="p-3 bg-white">' + resp['status'] + '</td>' +
-                        '<td class="p-3 bg-white"></td>' +
-                        '</tr>')
-                    $('#products_table').append(content)
+                    if(resp.status == 'available') {
+                        const content = $('<tr>' +
+                            '<td class="p-3 bg-white">' + resp['article'] + '</td>' +
+                            '<td class="p-3 bg-white">' + resp['name'] + '</td>' +
+                            '<td class="p-3 bg-white">' + resp['status'] + '</td>' +
+                            '<td class="p-3 bg-white"></td>' +
+                            '</tr>')
+                        $('#products_table').append(content)
+                    }
+
+
                     $(document).ready(function () {
                         const success = $('<div class="alert alert-success">'+
                             'Продукт успешно добавлен'+
                             '</div>')
                         $('#header').append(success)
-                    })
 
+                        let inputs = document.querySelectorAll('input[type=text]');
+
+                        for (let i = 0;  i < inputs.length; i++) {
+                            inputs[i].value = '';
+                        };
                 });
 
             },
             error: function (response) { // Данные не отправлены
                 $(document).ready(function () {
-                    console.log(response)
                     const error = $('<div class="alert alert-danger">'+
                         'Невозможно добавить продукт '+response.responseText+
                         '</div>')
@@ -108,8 +140,8 @@ $(document).ready(function () {
         }
 
         const createInput = $('<div class="double_input_attribute" id="double_div' + click + ' ">' +
-            '<div class="d-block"><label class="d-block">Название</label><input name="data" class="lab_name"></div>' +
-            '<div class="d-block"><label class="d-block">Значение</label><input name="data" class="lab_name"></div>' +
+            '<div class="d-block"><label class="d-block">Название</label><input type="text" name="data" class="lab_name"></div>' +
+            '<div class="d-block"><label class="d-block">Значение</label><input type="text" name="data" class="lab_name"></div>' +
             '<i id="delete_attribute" onclick="deleteAttribute()" class="fa fa-trash"></i></div>')
         $('#div_for_add_attribute').append(createInput)
 
@@ -124,38 +156,93 @@ function deleteAttribute() {
     $('#delete_attribute').parent().remove()
 }
 
-//open popup show product
-const productPopup = document.getElementById('popup_show_product')
-const productColumnsTable = $('.table_product')
-const popUpCloseBtn = $('#popup_close_btn')
-console.log(productColumnsTable)
 
-for(let key of productColumnsTable) {
-    key.addEventListener('click', () => {
-        if (document.getElementById('show_product_popup')) {
-            document.getElementById('show_product_popup').remove()
-        }
-        productPopup.classList.add('active')
-    })
-}
+const popUpCloseBtn = $('#popup_close_btn')
+
 popUpCloseBtn.on('click', () => {
     if (document.getElementById('show_product_popup')) {
         document.getElementById('show_product_popup').remove()
+        $('.icons').remove()
     }
-    productPopup.classList.remove('active')
+    $('#popup_show_product').removeClass('active')
+
+    $('#show_product_popup').remove()
 })
 
 
-//open show form product
-function showProductForm(data) {
-    $(document).ready(function () {
+//show form active
+$(document).on('click', ".tableproduct", function (e) {
+    if ($('#show_product_popup')) {
+        $('#show_product_popup').remove()
+    }
+    $('#popup_show_product').addClass('active')
+    showProductForm(this.id)
+    //FORM EDIT SHOW
+    $(document).on('click', "#edit_product_btn", function (e) {
+        $('#edit_popup').addClass('active')
+        const id = this.parentNode.parentNode.id
 
+        editProduct(id)
+
+        //UPDATE PRODUCT
+        $(document).on('click', '#submit_update', function(e) {
+            e.preventDefault()
+            let obj = {}
+            let form = new FormData(document.getElementById('edit_product_form'))
+            for (let [key, prop] of form) {
+                obj[key] = prop
+            }
+            obj = JSON.stringify(obj)
+            $.ajax({
+                type:'PUT',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Content-Type': 'application/json; charset=utf-8',
+                },
+                contentType:"application/json; charset=utf-8",
+                url: 'product/'+id,
+                dataType: "json",
+                processData:false,
+                data: obj,
+                success: function (response) {
+                    console.log(response)
+                },
+                error: function (response) {
+                    console.log(response)
+                }
+
+            })
+        })
+    })
+})
+
+
+function editProduct(id) {
+    $.ajax({
+        type:'GET',
+        url: 'product/'+id+'/edit',
+        dataType: "json",
+        success: function (response) {
+            $('#article_input_edit').val(response.article)
+            $('#name_input_edit').val(response.name)
+            $('#status_select_edit').val(response.status)
+        }
+
+    })
+
+}
+
+
+
+//open show form product
+function showProductForm(id) {
+    $(document).ready(function () {
         $.ajax({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Content-Type': 'application/json; charset=utf-8',
             },
-            url: 'http://laradockertest/public/product/'+data+'',
+            url: 'http://laradockertest/public/product/'+id,
             type: "get",
             dataType: 'json',
             contentType: "application/json; charset=utf-8",
@@ -163,7 +250,6 @@ function showProductForm(data) {
 
 
             success: function (response) { //Данные отправлены успешно
-                console.log(response.data === null)
                 let content = $('<div id="show_product_popup">'+
                     '<div><h3>'+response.name+'</h3></div>'+
                     '<div class="d-flex">'+
@@ -171,7 +257,7 @@ function showProductForm(data) {
                         '<div >Артикул</div>'+
                         '<div >Название</div>'+
                         '<div >Статус</div>'+
-                        '<div >Атрибут</div>'+
+                        '<div >Атрибуты</div>'+
                      '</div>'+
                      '<div>'+
                         '<div>'+response.article+'</div>'+
@@ -190,6 +276,9 @@ function showProductForm(data) {
                 } else {
                     attr += '<div>Нет</div>'
                 }
+                $('.popup_body_product').prepend(
+                    '<div id="'+id+'" class="icons"><div><i id="edit_product_btn" class="fas fa-pencil" aria-hidden="true"></i></div><div class="delete_product"><i class="fas fa-trash" aria-hidden="true"></i></div></div>'
+                )
                 $('.popup_body_product').append(content)
                 $('#last').append(attr)
 
@@ -206,29 +295,48 @@ function showProductForm(data) {
 }
 
 
-function deleteProduct(productId) {
-    $(document).ready(function () {
-
-        $.ajax({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                'Content-Type': 'application/json; charset=utf-8',
-            },
-            url: 'http://laradockertest/public/product/'+productId+'',
-            type: "delete",
-            dataType: 'json',
-            contentType: "application/json; charset=utf-8",
-            processData: false,
+$(document).on('click', '.delete_product', function (e) {
+    deleteProduct(this.parentNode.id)
 
 
-            success: function (response) { //Данные отправлены успешно
-                console.log(response)
-            },
-            error: function (response) { // Данные не отправлены
-                console.log(response)
-            }
+})
+function deleteProduct(id) {
+    if (confirm('Подтвердить удаление?')) {
+        $('#popup_show_product').removeClass('active')
+        $('#'+id+'.tableproduct').remove()
+        $('.icons').remove()
+        $(document).ready(function () {
+
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Content-Type': 'application/json; charset=utf-8',
+                },
+                url: 'http://laradockertest/public/product/'+id,
+                type: "delete",
+                dataType: 'json',
+                contentType: "application/json; charset=utf-8",
+                processData: false,
+
+
+                success: function (response) { //Данные отправлены успешно
+
+                },
+                error: function (response) { // Данные не отправлены
+
+                }
+            })
+
         })
+    }
 
-    })
 }
 
+
+//show edit form
+
+$(document).on('click', '#edit_product_btn', function (e) {
+    $('#popup_show_product').removeClass('active')
+    $('#edit_popup').addClass('active')
+
+})
