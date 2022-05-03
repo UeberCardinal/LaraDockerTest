@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductRequest;
+use App\Jobs\ProductWasAdded;
+use App\Mail\TestMailable;
 use App\Models\Product;
+use App\Notifications\SuccessAddProduct;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use PhpParser\JsonDecoder;
 use function MongoDB\BSON\toJSON;
 
@@ -36,7 +40,7 @@ class ProductController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(ProductRequest $request)
     {
@@ -46,6 +50,9 @@ class ProductController extends Controller
                 $data = $request->data;
                 $params['data'] = $data;
                 $product = Product::create($params);
+                \Notification::route('mail', config('products.email'))
+                    ->notify(new SuccessAddProduct($product->name));
+
                     return response()->json($product->only('article', 'name', 'status', 'data'), 200);
                 }
         } catch (\Exception $exception) {

@@ -169,3 +169,13 @@ tr {
     height: 30px;
     padding-left: 10px;
 }
+
+.edit_popup_close {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    right: 35px;
+    font-size: 21px;
+}
+
+

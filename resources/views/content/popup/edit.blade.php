@@ -35,7 +35,7 @@
                 <br>
                 <div >
                     <div class="d-block ">
-                        <div id="div_for_add_attribute"><h4>Атрибуты</h4></div>
+                        <div id="div_for_edit_attribute"><h4>Атрибуты</h4></div>
                         <button type="button" id="add_attribute">+ Добавить атрибут</button>
                     </div>
                 </div>
@@ -46,7 +46,7 @@
                     </button>
 
                 </div>
-                <div class="popup_close" id="popup_close">&#10006</div>
+                <div class="edit_popup_close" id="edit_popup_close">&#10006</div>
             </form>
         </div>
 
